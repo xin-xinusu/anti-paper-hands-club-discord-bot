@@ -14,8 +14,10 @@ exports.config = {
   // Features 
   coinCheck: {
     isActive: true,
-
   }, 
+  music: {
+    isActive: true
+  },
 
 
   apiEndpoints: { //baseApi endpoints for services

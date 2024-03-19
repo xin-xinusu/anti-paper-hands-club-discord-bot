@@ -11,22 +11,32 @@ const { runServer } = require('./operations');
 // DISCORD BOT INVITE 
 // https://discord.com/oauth2/authorize?client_id=1213846334856232991&permissions=2148756560&scope=bot
 
-// // Discord Client
-let discordClient = new Client({
-	intents: [
-		GatewayIntentBits.Guilds,
-		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.MessageContent,
-		GatewayIntentBits.GuildMembers,
-		GatewayIntentBits.GuildVoiceStates
-	],
-	partials: [
-		Partials.Message,
-		Partials.Channel,
-		Partials.Reaction
-	],
-	restTimeOffset: 1000
-})
+// Discord Client
+let discordClient = null;
+
+function getDiscordClient() {
+  if (!discordClient) {
+    discordClient = new Client({
+      intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildVoiceStates
+      ],
+      partials: [
+        Partials.Message,
+        Partials.Channel,
+        Partials.Reaction
+      ],
+      restTimeOffset: 1000
+    });
+  }
+  return discordClient;
+}
+
+// Initial setup of the Discord Client
+discordClient = getDiscordClient();
 
 // Discord Client
 discordClient.once('ready', async () => {
@@ -70,45 +80,10 @@ discordClient.once('ready', async () => {
 // Handle Disconnections
 discordClient.on(Events.ShardError, error => {
 	console.error('A websocket connection encountered an error:', error);
-
-	// Reestablish client
-	discordClient = new Client({
-		intents: [
-			GatewayIntentBits.Guilds,
-			GatewayIntentBits.GuildMessages,
-			GatewayIntentBits.MessageContent,
-			GatewayIntentBits.GuildMembers,
-		],
-		partials: [
-			Partials.Message,
-			Partials.Channel,
-			Partials.Reaction
-		],
-		restTimeOffset: 1000
-	})
-
-	runServer(discordClient, config)
 });
 
 discordClient.on(Events.ShardResume, async() => {
-
-	// Reestablish client
-	discordClient = new Client({
-		intents: [
-			GatewayIntentBits.Guilds,
-			GatewayIntentBits.GuildMessages,
-			GatewayIntentBits.MessageContent,
-			GatewayIntentBits.GuildMembers,
-		],
-		partials: [
-			Partials.Message,
-			Partials.Channel,
-			Partials.Reaction
-		],
-		restTimeOffset: 1000
-	})
-
-  runServer(discordClient, config)
+  console.log('Connection successfully resumed');
 })
 
 

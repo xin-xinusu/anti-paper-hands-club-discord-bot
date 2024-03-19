@@ -1,5 +1,6 @@
 const { config } = require('../config')
 const { activateCoinCheck } = require('../features/coin-price-data')
+const { startMusic } = require('../features/music-streamer')
 
 const adminNotifications = config.adminNotices || null
 
@@ -22,6 +23,10 @@ exports.runServer = async(discordClient, config) => {
 
   if(config.coinCheck.isActive) {
     activateCoinCheck(discordClient, adminNoticeChannel)
+  }
+
+  if(config.music.isActive){
+    startMusic(discordClient)
   }
     
 }
