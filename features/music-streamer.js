@@ -98,6 +98,8 @@ async function playYouTubeAudio(url, connection, startTime = 0, message) {
   }
 }
 
+// 
+
 // Play next track
 async function playNextSong(connection) {
   // Determine which playlist to use
@@ -107,8 +109,8 @@ async function playNextSong(connection) {
     await playYouTubeAudio(nextSong, connection);
     // If user playlist is empty after removing the song, switch to predetermined playlist
     if (userPlaylist.length === 0) {
-        currentPlaylist = 'predetermined';
-        currentIndex = 0; // Reset index for predetermined playlist
+      currentPlaylist = 'predetermined';
+      currentIndex = 0; // Reset index for predetermined playlist
     }
   } else if (currentPlaylist === 'predetermined') {
     // Play the next song from the predetermined playlist
