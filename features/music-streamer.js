@@ -18,9 +18,15 @@ let connection;
 
 // Playlists 
 let predeterminedPlaylist = [
+  "https://www.youtube.com/watch?v=nfKXPPMidqw",
   'https://www.youtube.com/watch?v=2uznwavqsBs', 
   'https://www.youtube.com/watch?v=dPAL7_FuQ8M', 
-  "https://www.youtube.com/watch?v=hr6l6zpVDsY"
+  "https://www.youtube.com/watch?v=hr6l6zpVDsY",
+  "https://www.youtube.com/watch?v=n_LcVqqHSY8", // lane 8 sunset mix
+  "https://www.youtube.com/watch?v=QtKGMfeyPUE", // diplo antartica
+  "https://www.youtube.com/watch?v=zIRIvCa21gg", // rufus du sol sydney harbour
+  "https://www.youtube.com/watch?v=Vh246_Mgk7o", // Deep House Forest Mix - Durante (DJ Set)
+
 ]; 
 let userPlaylist = [];
 
@@ -102,28 +108,20 @@ async function playYouTubeAudio(url, connection, startTime = 0, message) {
 
 // Play next track
 async function playNextSong(connection) {
-  // Determine which playlist to use
+  // If the user playlist has songs, play the next song from there
   if (currentPlaylist === 'user' && userPlaylist.length > 0) {
-    // Play the next song from the user playlist
-    const nextSong = userPlaylist.shift(); // Remove and get the first song in the list
-    await playYouTubeAudio(nextSong, connection);
-    // If user playlist is empty after removing the song, switch to predetermined playlist
-    if (userPlaylist.length === 0) {
-      currentPlaylist = 'predetermined';
-      currentIndex = 0; // Reset index for predetermined playlist
-    }
-  } else if (currentPlaylist === 'predetermined') {
-    // Play the next song from the predetermined playlist
-    if (predeterminedPlaylist.length > 0) {
-      // Advance to the next song in the predetermined playlist
-      currentIndex = (currentIndex + 1) % predeterminedPlaylist.length; // Loop back if at the end
-      const nextSong = predeterminedPlaylist[currentIndex];
-      await playYouTubeAudio(nextSong, connection);
-    } else {
-        console.log("The predetermined playlist is empty.");
-    }
+      const nextSongUrl = userPlaylist.shift(); // Remove the first song and get its URL
+      await playYouTubeAudio(nextSongUrl, connection);
+      // Check if the user playlist is now empty, and switch to the predetermined playlist if it is
+      if (userPlaylist.length === 0) {
+          currentPlaylist = 'predetermined';
+          currentIndex = 0; // Start from the beginning of the predetermined playlist
+      }
   } else {
-    console.log("No playlist selected or available songs to play.");
+      // Safely calculate the next song's index to handle looping
+      currentIndex = (currentIndex + 1) % predeterminedPlaylist.length;
+      const nextSongUrl = predeterminedPlaylist[currentIndex];
+      await playYouTubeAudio(nextSongUrl, connection);
   }
 }
 
@@ -209,8 +207,14 @@ async function handlePlayCommand(args, connection, message) {
 
 function handleStopCommand(connection, message) {
   if (connection && connection.state.status !== VoiceConnectionStatus.Disconnected) {
-    connection.destroy(); // Disconnects from the voice channel and stops playback
-    message.reply('Playback stopped and has left the voice channel.');
+    const player = connection.state.subscription.player;
+    player.stop(); // Stop the current playing track
+    connection.destroy(); // Disconnects from the voice channel
+    message.reply('Playback stopped and bot has left the voice channel.');
+
+    // Optionally, reset playback-related variables
+    currentIndex = 0;
+    currentPlaylist = 'user'; // or 'predetermined', based on your preference
   } else {
     message.reply('The bot is not connected to a voice channel.');
   }
@@ -219,6 +223,7 @@ function handleStopCommand(connection, message) {
 function handleVolumeCommand(args, message) {
   const volume = parseFloat(args[0]);
   if (!isNaN(volume) && volume >= 0 && volume <= 1) {
+    globalVolume = volume;
     resource.volume.setVolume(volume);
     message.reply(`Volume set to ${volume * 100}%`);
   } else {
@@ -227,8 +232,15 @@ function handleVolumeCommand(args, message) {
 }
 
 function handleSkipCommand(connection, message) {
-  playNextSong(connection);
-  message.reply('Skipping to the next video...');
+  // This simply advances to the next song
+  playNextSong(connection)
+    .then(() => message.reply(`
+      Skipping to the next video... \n\nPlaying ${currentSongInfo.title} \n\n${currentSongInfo.url}
+    `))
+    .catch(error => {
+      console.error('Error during skip:', error);
+      message.reply('There was an error trying to skip to the next song.');
+    });
 }
 
 function handleAddToPlaylistCommand(args, connection, message) {
