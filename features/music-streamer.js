@@ -26,8 +26,8 @@ let predeterminedPlaylist = [
   "https://www.youtube.com/watch?v=QtKGMfeyPUE", // diplo antartica
   "https://www.youtube.com/watch?v=zIRIvCa21gg", // rufus du sol sydney harbour
   "https://www.youtube.com/watch?v=Vh246_Mgk7o", // Deep House Forest Mix - Durante (DJ Set)
-
 ]; 
+
 let userPlaylist = [];
 
 let currentPlaylist = 'user'; // 'user' or 'predetermined'
